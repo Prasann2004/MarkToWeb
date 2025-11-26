@@ -150,5 +150,7 @@ class TestHTMLNode(unittest.TestCase):
         outer_parent = ParentNode("div", [inner_parent])
         expected = "<div><p><em><strong>deep text</strong></em></p></div>"
         self.assertEqual(outer_parent.to_html(), expected)    
+
+    
 if __name__ == "__main__":
     unittest.main()
