@@ -217,5 +217,89 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(result[0].text, "Some text ")
         self.assertEqual(result[1].text, "end")
         self.assertEqual(result[1].text_type, TextType.LINK)
+
+    def test_text_to_textnodes_plain_text(self):
+        text = "This is just plain text"
+        result = text_to_textnodes(text)
+        expected = [TextNode("This is just plain text", TextType.PLAIN)]
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].text, "This is just plain text")
+        self.assertEqual(result[0].text_type, TextType.PLAIN)
+    def test_text_to_textnodes_with_image(self):
+        text = "Text with ![image](https://example.com/pic.png) here"
+        result = text_to_textnodes(text)
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[0].text, "Text with ")
+        self.assertEqual(result[0].text_type, TextType.PLAIN)
+        self.assertEqual(result[1].text, "image")
+        self.assertEqual(result[1].text_type, TextType.IMAGE)
+        self.assertEqual(result[1].url, "https://example.com/pic.png")
+        self.assertEqual(result[2].text, " here")
+        self.assertEqual(result[2].text_type, TextType.PLAIN)
+    def test_text_to_textnodes_with_link(self):
+        text = "Text with [link](https://example.com) here"
+        result = text_to_textnodes(text)
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[0].text, "Text with ")
+        self.assertEqual(result[0].text_type, TextType.PLAIN)
+        self.assertEqual(result[1].text, "link")
+        self.assertEqual(result[1].text_type, TextType.LINK)
+        self.assertEqual(result[1].url, "https://example.com")
+        self.assertEqual(result[2].text, " here")
+        self.assertEqual(result[2].text_type, TextType.PLAIN)
+    def test_text_to_textnodes_mixed_content(self):
+        text = "Start ![image](https://example.com/pic.png) middle [link](https://example.com) end"
+        result = text_to_textnodes(text)
+        self.assertEqual(len(result), 5)
+        self.assertEqual(result[0].text, "Start ")
+        self.assertEqual(result[0].text_type, TextType.PLAIN)
+        self.assertEqual(result[1].text, "image")
+        self.assertEqual(result[1].text_type, TextType.IMAGE)
+        self.assertEqual(result[2].text, " middle ")
+        self.assertEqual(result[2].text_type, TextType.PLAIN)
+        self.assertEqual(result[3].text, "link")
+        self.assertEqual(result[3].text_type, TextType.LINK)
+        self.assertEqual(result[4].text, " end")
+        self.assertEqual(result[4].text_type, TextType.PLAIN)
+    def test_text_to_textnodes_multiple_images(self):
+        text = "![first](https://example.com/1.png) and ![second](https://example.com/2.png)"
+        result = text_to_textnodes(text)
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[0].text, "first")
+        self.assertEqual(result[0].text_type, TextType.IMAGE)
+        self.assertEqual(result[1].text, " and ")
+        self.assertEqual(result[1].text_type, TextType.PLAIN)
+        self.assertEqual(result[2].text, "second")
+        self.assertEqual(result[2].text_type, TextType.IMAGE)
+    def test_text_to_textnodes_multiple_links(self):
+        text = "[first](https://example.com) and [second](https://test.com)"
+        result = text_to_textnodes(text)
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[0].text, "first")
+        self.assertEqual(result[0].text_type, TextType.LINK)
+        self.assertEqual(result[1].text, " and ")
+        self.assertEqual(result[1].text_type, TextType.PLAIN)
+        self.assertEqual(result[2].text, "second")
+        self.assertEqual(result[2].text_type, TextType.LINK)
+    def test_text_to_textnodes_empty_string(self):
+        text = ""
+        result = text_to_textnodes(text)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].text, "")
+        self.assertEqual(result[0].text_type, TextType.PLAIN)
+    def test_text_to_textnodes_only_image(self):
+        text = "![only](https://example.com/pic.png)"
+        result = text_to_textnodes(text)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].text, "only")
+        self.assertEqual(result[0].text_type, TextType.IMAGE)
+        self.assertEqual(result[0].url, "https://example.com/pic.png")
+    def test_text_to_textnodes_only_link(self):
+        text = "[only](https://example.com)"
+        result = text_to_textnodes(text)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].text, "only")
+        self.assertEqual(result[0].text_type, TextType.LINK)
+        self.assertEqual(result[0].url, "https://example.com")
 if __name__ == "__main__":
     unittest.main()
