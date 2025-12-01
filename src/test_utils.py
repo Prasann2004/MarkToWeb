@@ -122,7 +122,100 @@ class UtilsTest(unittest.TestCase):
         "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
         )
         self.assertListEqual([("image", "https://i.imgur.com/zjjcJKZ.png")], matches)
-
-
+    def test_split_nodes_image_single(self):
+        node = TextNode("This is text with an ![image](https://example.com/pic.png)", TextType.PLAIN)
+        result = split_nodes_image([node])
+        expected = [
+            TextNode("This is text with an ", TextType.PLAIN),
+            TextNode("image", TextType.IMAGE, "https://example.com/pic.png")
+        ]
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].text, "This is text with an ")
+        self.assertEqual(result[1].text, "image")
+        self.assertEqual(result[1].text_type, TextType.IMAGE)
+        self.assertEqual(result[1].url, "https://example.com/pic.png")
+    def test_split_nodes_image_multiple(self):
+        node = TextNode("![first](https://example.com/1.png) and ![second](https://example.com/2.jpg)", TextType.PLAIN)
+        result = split_nodes_image([node])
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[0].text, "first")
+        self.assertEqual(result[0].text_type, TextType.IMAGE)
+        self.assertEqual(result[1].text, " and ")
+        self.assertEqual(result[1].text_type, TextType.PLAIN)
+        self.assertEqual(result[2].text, "second")
+        self.assertEqual(result[2].text_type, TextType.IMAGE)
+    def test_split_nodes_image_no_images(self):
+        node = TextNode("This is plain text with no images", TextType.PLAIN)
+        result = split_nodes_image([node])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].text, "This is plain text with no images")
+        self.assertEqual(result[0].text_type, TextType.PLAIN)
+    def test_split_nodes_image_empty_alt_text(self):
+        node = TextNode("Image with empty alt: ![](https://example.com/pic.png)", TextType.PLAIN)
+        result = split_nodes_image([node])
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].text, "Image with empty alt: ")
+        self.assertEqual(result[1].text, "")
+        self.assertEqual(result[1].text_type, TextType.IMAGE)
+    def test_split_nodes_image_at_start(self):
+        node = TextNode("![start](https://example.com/start.png) some text", TextType.PLAIN)
+        result = split_nodes_image([node])
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].text, "start")
+        self.assertEqual(result[0].text_type, TextType.IMAGE)
+        self.assertEqual(result[1].text, " some text")
+    def test_split_nodes_image_at_end(self):
+        node = TextNode("Some text ![end](https://example.com/end.png)", TextType.PLAIN)
+        result = split_nodes_image([node])
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].text, "Some text ")
+        self.assertEqual(result[1].text, "end")
+        self.assertEqual(result[1].text_type, TextType.IMAGE)
+    def test_split_nodes_link_single(self):
+        node = TextNode("This is text with a [link](https://boot.dev)", TextType.PLAIN)
+        result = split_nodes_link([node])
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].text, "This is text with a ")
+        self.assertEqual(result[0].text_type, TextType.PLAIN)
+        self.assertEqual(result[1].text, "link")
+        self.assertEqual(result[1].text_type, TextType.LINK)
+        self.assertEqual(result[1].url, "https://boot.dev")
+    def test_split_nodes_link_multiple(self):
+        node = TextNode("[first](https://example.com) and [second](https://test.com)", TextType.PLAIN)
+        result = split_nodes_link([node])
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[0].text, "first")
+        self.assertEqual(result[0].text_type, TextType.LINK)
+        self.assertEqual(result[1].text, " and ")
+        self.assertEqual(result[1].text_type, TextType.PLAIN)
+        self.assertEqual(result[2].text, "second")
+        self.assertEqual(result[2].text_type, TextType.LINK)
+    def test_split_nodes_link_no_links(self):
+        node = TextNode("This is plain text with no links", TextType.PLAIN)
+        result = split_nodes_link([node])
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].text, "This is plain text with no links")
+        self.assertEqual(result[0].text_type, TextType.PLAIN)
+    def test_split_nodes_link_empty_text(self):
+        node = TextNode("Link with empty text: [](https://example.com)", TextType.PLAIN)
+        result = split_nodes_link([node])
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].text, "Link with empty text: ")
+        self.assertEqual(result[1].text, "")
+        self.assertEqual(result[1].text_type, TextType.LINK)
+    def test_split_nodes_link_at_start(self):
+        node = TextNode("[start](https://example.com) some text", TextType.PLAIN)
+        result = split_nodes_link([node])
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].text, "start")
+        self.assertEqual(result[0].text_type, TextType.LINK)
+        self.assertEqual(result[1].text, " some text")
+    def test_split_nodes_link_at_end(self):
+        node = TextNode("Some text [end](https://example.com)", TextType.PLAIN)
+        result = split_nodes_link([node])
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].text, "Some text ")
+        self.assertEqual(result[1].text, "end")
+        self.assertEqual(result[1].text_type, TextType.LINK)
 if __name__ == "__main__":
     unittest.main()
