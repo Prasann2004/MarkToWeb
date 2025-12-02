@@ -26,21 +26,32 @@ class LeafNode(HTMLNode):
         super().__init__(tag, value, None, props)
 
     def to_html(self) :
-        if not self.value :
+        if self.value is None:
             raise ValueError("No value Passed .")
         if not self.tag : 
             return self.value
-        else : 
-            result = ""
-            result +=f"<{self.tag}"
-            if self.props : 
-                result +=" "+self.add_to_html()
-            result+=">"
-            result+=self.value
-            result+="</"
-            result+=self.tag
-            result+=">"
+        
+        # Handle self-closing tags (like img)
+        if self.tag == "img":
+            result = f"<{self.tag}"
+            if self.props:
+                result += " " + self.add_to_html()
+            result += ">"
             return result
+        
+        # Regular tags
+        if not self.value:
+            raise ValueError("No value Passed .")
+        result = ""
+        result +=f"<{self.tag}"
+        if self.props : 
+            result +=" "+self.add_to_html()
+        result+=">"
+        result+=self.value
+        result+="</"
+        result+=self.tag
+        result+=">"
+        return result
     def __repr__(self):
         return f"LeafNode(tag={self.tag}, value={self.value}, children={self.children}, props={self.props})"
 

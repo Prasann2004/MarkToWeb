@@ -362,5 +362,42 @@ This is the same paragraph on a new line
         md = "Normal text\n\n> This is a blockquote\n> spanning multiple lines\n\nMore normal text"
         blocks = markdown_to_blocks(md)
         self.assertEqual(blocks, ["Normal text", "> This is a blockquote\n> spanning multiple lines", "More normal text"])
+
+    def test_extract_title_basic(self):
+        markdown = "# This is a title"
+        title = extract_title(markdown)
+        self.assertEqual(title, "This is a title")
+    def test_extract_title_with_content_after(self):
+        markdown = "# Main Title\n\nSome content here\n\n## Subtitle"
+        title = extract_title(markdown)
+        self.assertEqual(title, "Main Title")
+    def test_extract_title_with_extra_spaces(self):
+        markdown = "#   Title with spaces   "
+        title = extract_title(markdown)
+        self.assertEqual(title, "Title with spaces")
+    def test_extract_title_multiline_with_h1_later(self):
+        markdown = "Some intro text\n\n# The Real Title\n\nMore content"
+        title = extract_title(markdown)
+        self.assertEqual(title, "The Real Title")
+    def test_extract_title_no_h1_header(self):
+        markdown = "## This is h2\n\n### This is h3\n\nNo h1 here"
+        with self.assertRaises(Exception):
+            extract_title(markdown)
+    def test_extract_title_h1_with_formatting(self):
+        markdown = "# Title with **bold** and _italic_"
+        title = extract_title(markdown)
+        self.assertEqual(title, "Title with **bold** and _italic_")
+    def test_extract_title_ignores_h2_and_higher(self):
+        markdown = "## Not the title\n\n### Also not\n\n# This is the title"
+        title = extract_title(markdown)
+        self.assertEqual(title, "This is the title")
+    def test_extract_title_empty_markdown(self):
+        markdown = ""
+        with self.assertRaises(Exception):
+            extract_title(markdown)
+    def test_extract_title_only_whitespace(self):
+        markdown = "   \n\n   \n"
+        with self.assertRaises(Exception):
+            extract_title(markdown)
 if __name__ == "__main__":
     unittest.main()

@@ -73,10 +73,10 @@ class TestHTMLNode(unittest.TestCase):
         node = LeafNode("span", "test")
         self.assertIsNone(node.children)
 
-    def test_leaf_to_html_img_self_closing_style(self):
+    def test_leaf_to_html_img_self_closing(self):
         node = LeafNode("img", "", {"src": "image.jpg", "alt": "test"})
-        with self.assertRaises(ValueError):
-            node.to_html()
+        result = node.to_html()
+        self.assertEqual(result, '<img src="image.jpg" alt="test">')
 
     def test_leaf_repr(self):
         node = LeafNode("p", "text", {"class": "test"})

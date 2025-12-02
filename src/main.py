@@ -1,21 +1,82 @@
-from textnode import TextNode, TextType
-from htmlnode import HTMLNode , LeafNode ,ParentNode
+import os
+import shutil
+import logging
+from block import markdown_to_html_node
+from utils import extract_title
 
-def main(): 
-    text_node = TextNode("This is some anchor text",TextType.LINK,"https://www.boot.dev")
-    print(text_node)
-    node = ParentNode(
-    "p",
-    [
-        LeafNode("b", "Bold text"),
-        LeafNode(None, "Normal text"),
-        LeafNode("i", "italic text"),
-        LeafNode(None, "Normal text"),
-    ],
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
-    print(node.to_html())
+def generate_page(from_path, template_path, dest_path):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    
+    with open(from_path, 'r', encoding='utf-8') as f:
+        markdown_content = f.read()
+    
+    with open(template_path, 'r', encoding='utf-8') as f:
+        template_content = f.read()
+    
+    html_node = markdown_to_html_node(markdown_content)
+    html_content = html_node.to_html()
+    
+    title = extract_title(markdown_content)
+    
+    full_html = template_content.replace('{{ Title }}', title)
+    full_html = full_html.replace('{{ Content }}', html_content)
+    
+    dest_dir = os.path.dirname(dest_path)
+    if dest_dir:
+        os.makedirs(dest_dir, exist_ok=True)
+    
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        f.write(full_html)
 
+def copy_static_to_public(source_dir="static", dest_dir="public"):
+    if os.path.exists(dest_dir):
+        shutil.rmtree(dest_dir)
+        logging.info(f"Deleted existing directory: {dest_dir}")
+    
+    os.makedirs(dest_dir)
+    logging.info(f"Created directory: {dest_dir}")
+    
+    _copy_directory_contents(source_dir, dest_dir)
 
-if __name__ == "__main__" :
+def _copy_directory_contents(source_dir, dest_dir):
+    if not os.path.exists(source_dir):
+        logging.warning(f"Source directory does not exist: {source_dir}")
+        return
+    
+    for item in os.listdir(source_dir):
+        source_path = os.path.join(source_dir, item)
+        dest_path = os.path.join(dest_dir, item)
+        
+        if os.path.isfile(source_path):
+            shutil.copy2(source_path, dest_path)
+            logging.info(f"Copied file: {source_path} -> {dest_path}")
+        elif os.path.isdir(source_path):
+            os.makedirs(dest_path)
+            logging.info(f"Created directory: {dest_path}")
+            _copy_directory_contents(source_path, dest_path)
+
+def main():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    
+    public_dir = os.path.join(project_root, "public")
+    static_dir = os.path.join(project_root, "static")
+    content_dir = os.path.join(project_root, "content")
+    template_path = os.path.join(project_root, "template.html")
+    
+    if os.path.exists(public_dir):
+        shutil.rmtree(public_dir)
+        logging.info(f"Deleted existing directory: {public_dir}")
+    
+    copy_static_to_public(static_dir, public_dir)
+    
+    generate_page(
+        os.path.join(content_dir, "index.md"),
+        template_path,
+        os.path.join(public_dir, "index.html")
+    )
+
+if __name__ == "__main__":
     main()
