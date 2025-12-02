@@ -10,11 +10,14 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                 raise ValueError("Invalid markdown syntax")
             else :
                 if count_delimeter == 0 :
-                    new_nodes.append(TextNode(text = node.text , text_type = TextType.PLAIN))
+                    new_nodes.append(node)
                 else : 
-                    left,center,right = node.text.split(delimiter,maxsplit = 2)
-                    old_nodes.extend([TextNode(text = left , text_type = TextType.PLAIN),
-                    TextNode(text = center , text_type = text_type),TextNode(text = right , text_type = TextType.PLAIN)])
+                    parts = node.text.split(delimiter)
+                    for i, part in enumerate(parts):
+                        if i % 2 == 0:  # Even indices are plain text
+                            new_nodes.append(TextNode(text=part, text_type=TextType.PLAIN))
+                        else:  # Odd indices are formatted text
+                            new_nodes.append(TextNode(text=part, text_type=text_type))
         else :
             new_nodes.append(node)
     
@@ -83,5 +86,32 @@ def text_to_textnodes(text) :
     result = split_nodes_link(result)
     result = split_nodes_delimiter(result, "**", TextType.BOLD)
     result = split_nodes_delimiter(result, "*", TextType.ITALIC)
+    result = split_nodes_delimiter(result, "_", TextType.ITALIC)
     result = split_nodes_delimiter(result, "`", TextType.CODE)
     return result
+
+def markdown_to_blocks(markdown) : 
+    delimeter = "\n\n"
+    initial_blocks = markdown.split(delimeter)
+    
+    result = []
+    for block in initial_blocks:
+        block = block.strip()
+        if not block:
+            continue
+            
+        lines = block.split('\n')
+        current_block_lines = []
+        
+        for line in lines:
+            stripped_line = line.strip()
+            if stripped_line.startswith('#') and current_block_lines:
+                result.append('\n'.join(current_block_lines).strip())
+                current_block_lines = [line]
+            else:
+                current_block_lines.append(line)
+        
+        if current_block_lines:
+            result.append('\n'.join(current_block_lines).strip())
+    
+    return [b for b in result if b]

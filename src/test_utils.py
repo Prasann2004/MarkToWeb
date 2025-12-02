@@ -117,6 +117,7 @@ class UtilsTest(unittest.TestCase):
             "Here is an ![image](https://example.com/pic.png) and a [link](https://example.com)"
         )
         self.assertListEqual([("link", "https://example.com")], matches)
+    
     def test_extract_markdown_images(self):
         matches = extract_markdown_images(
         "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
@@ -301,5 +302,65 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(result[0].text, "only")
         self.assertEqual(result[0].text_type, TextType.LINK)
         self.assertEqual(result[0].url, "https://example.com")
+
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+    def test_markdown_to_blocks_single_block(self):
+        md = "This is a single block of text"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["This is a single block of text"])
+    def test_markdown_to_blocks_empty_string(self):
+        md = ""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, [])
+    def test_markdown_to_blocks_only_newlines(self):
+        md = "\n\n\n\n"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, [])
+    def test_markdown_to_blocks_whitespace_blocks(self):
+        md = "Block 1\n\n   \n\nBlock 2"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["Block 1", "Block 2"])
+    def test_markdown_to_blocks_extra_whitespace(self):
+        md = "  Block with leading spaces  \n\n  Another block  "
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["Block with leading spaces", "Another block"])
+    def test_markdown_to_blocks_multiple_consecutive_separators(self):
+        md = "Block 1\n\n\n\n\n\nBlock 2"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["Block 1", "Block 2"])
+    def test_markdown_to_blocks_heading_and_paragraph(self):
+        md = "# Heading 1\n\nThis is a paragraph under the heading."
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["# Heading 1", "This is a paragraph under the heading."])
+    def test_markdown_to_blocks_code_block(self):
+        md = "Regular text\n\n```\ncode line 1\ncode line 2\n```\n\nMore text"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["Regular text", "```\ncode line 1\ncode line 2\n```", "More text"])
+    def test_markdown_to_blocks_nested_lists(self):
+        md = "- Item 1\n  - Nested item\n- Item 2\n\n1. Numbered item\n2. Another numbered item"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["- Item 1\n  - Nested item\n- Item 2", "1. Numbered item\n2. Another numbered item"])
+    def test_markdown_to_blocks_blockquote(self):
+        md = "Normal text\n\n> This is a blockquote\n> spanning multiple lines\n\nMore normal text"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, ["Normal text", "> This is a blockquote\n> spanning multiple lines", "More normal text"])
 if __name__ == "__main__":
     unittest.main()
