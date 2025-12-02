@@ -57,6 +57,28 @@ def _copy_directory_contents(source_dir, dest_dir):
             logging.info(f"Created directory: {dest_path}")
             _copy_directory_contents(source_path, dest_path)
 
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+
+    if not os.path.exists(dir_path_content):
+        logging.warning(f"Content directory does not exist: {dir_path_content}")
+        return
+    
+    for item in os.listdir(dir_path_content):
+        source_path = os.path.join(dir_path_content, item)
+        
+        if os.path.isfile(source_path):
+            if source_path.endswith('.md'):
+                dest_filename = item.replace('.md', '.html')
+                dest_path = os.path.join(dest_dir_path, dest_filename)
+                
+                generate_page(source_path, template_path, dest_path)
+        
+        elif os.path.isdir(source_path):
+            dest_subdir = os.path.join(dest_dir_path, item)
+            os.makedirs(dest_subdir, exist_ok=True)
+            
+            generate_pages_recursive(source_path, template_path, dest_subdir)
+
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(script_dir)
@@ -72,11 +94,7 @@ def main():
     
     copy_static_to_public(static_dir, public_dir)
     
-    generate_page(
-        os.path.join(content_dir, "index.md"),
-        template_path,
-        os.path.join(public_dir, "index.html")
-    )
+    generate_pages_recursive(content_dir, template_path, public_dir)
 
 if __name__ == "__main__":
     main()
