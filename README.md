@@ -51,8 +51,8 @@ static_site_generator/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/Prasann2004/static_site_generator.git
-cd static_site_generator
+git clone https://github.com/Prasann2004/MarkToWeb.git
+cd MarkToWeb
 ```
 
 2. No additional dependencies required - uses only Python standard library!
