@@ -45,8 +45,7 @@ static_site_generator/
 
 ### Prerequisites
 
-- Python 3.x
-- pip (Python package manager)
+- Python 3.12.3
 
 ### Setup
 
